@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-2 lg:col-span-1">
             <Logo className="h-12 w-auto mb-4" light />
             <p className="text-gray-400 mb-6">
-              A growing community of 2000+ students and professionals from across India,
+              A growing community of 5000+ students and professionals from across India,
               dedicated to connecting talent with opportunities for growth and success.
             </p>
             <div className="flex space-x-4">
