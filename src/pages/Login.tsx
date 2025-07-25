@@ -6,7 +6,7 @@ import { getAnalytics } from "firebase/analytics"; // Import getAnalytics
 
 // Your web app's Firebase configuration
 // This configuration will be populated by the Canvas environment's __firebase_config
-const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' && __firebase_config ? __firebase_config : '{}');
 
 // Main App component that encapsulates the entire application
 const App = () => {
@@ -27,6 +27,13 @@ const App = () => {
     if (firebaseApp) return;
 
     try {
+      // Check if firebaseConfig is empty, which indicates a missing environment variable
+      if (Object.keys(firebaseConfig).length === 0) {
+        setError("Firebase configuration is missing. Please ensure '__firebase_config' is provided by the environment.");
+        setIsAuthReady(true); // Mark as ready to prevent infinite loading, even if failed
+        return; // Stop initialization if config is missing
+      }
+
       // Access global variables provided by the Canvas environment
       const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
