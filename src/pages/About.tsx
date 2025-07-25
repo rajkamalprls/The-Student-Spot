@@ -31,7 +31,7 @@ const About: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           The Student Spot is a dynamic platform designed to bridge the gap between students, professionals, and recruiters.
-          Our community has grown to over 2000+ members across India, united by a passion for learning, growth, and career development.
+          Our community has grown to over 5000+ members across India, united by a passion for learning, growth, and career development.
         </motion.p>
       </section>
 
