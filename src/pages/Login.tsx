@@ -21,14 +21,27 @@ const App = () => {
     // Check if Firebase is already initialized to prevent re-initialization
     if (firebaseApp) return;
 
+    let parsedFirebaseConfig = {};
     try {
       // Access global variables provided by the Canvas environment
       const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-      const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
       const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
+      // Safely parse __firebase_config
+      if (typeof __firebase_config === 'string' && __firebase_config.trim() !== '') {
+        parsedFirebaseConfig = JSON.parse(__firebase_config);
+      } else {
+        // If __firebase_config is not a valid string, log a warning but proceed with an empty config
+        console.warn("Firebase config (__firebase_config) is not a valid string or is empty. Initializing Firebase with an empty config.");
+      }
+
+      // Ensure that parsedFirebaseConfig is an object before proceeding
+      if (typeof parsedFirebaseConfig !== 'object' || parsedFirebaseConfig === null) {
+        throw new Error("Parsed Firebase config is not a valid object.");
+      }
+
       // Initialize Firebase app
-      const app = initializeApp(firebaseConfig);
+      const app = initializeApp(parsedFirebaseConfig);
       setFirebaseApp(app);
 
       // Get Auth and Firestore instances
@@ -84,7 +97,12 @@ const App = () => {
       return () => unsubscribe();
     } catch (err) {
       console.error("Firebase initialization error:", err);
-      setError("Failed to initialize application. Please try again later.");
+      // Provide a more specific error message if the config parsing failed
+      if (err.name === 'SyntaxError' || err.message.includes('Firebase config is not a valid object')) {
+        setError("Failed to initialize application: Firebase configuration is invalid. Please check the provided config.");
+      } else {
+        setError("Failed to initialize application. Please try again later.");
+      }
     }
   }, [firebaseApp, isAuthReady]); // Depend on firebaseApp to ensure one-time init and isAuthReady for initial sign-in logic
 
