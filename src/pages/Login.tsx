@@ -3,6 +3,18 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'; // Import getFirestore if you plan to use Firestore later
 
+// Your web app's Firebase configuration
+// This configuration will now be directly used for Firebase initialization
+const firebaseConfig = {
+  apiKey: "AIzaSyB5iBmmG6QFoetCJ9dClEKIlNCcxcjyezU",
+  authDomain: "rajkamalprls-343ca.firebaseapp.com",
+  projectId: "rajkamalprls-343ca",
+  storageBucket: "rajkamalprls-343ca.firebasestorage.app",
+  messagingSenderId: "1037771254894",
+  appId: "1:1037771254894:web:eaf0062abaae8235cd4a7f",
+  measurementId: "G-VR68H3K99G"
+};
+
 // Main App component that encapsulates the entire application
 const App = () => {
   // State variables for Firebase instances and user information
@@ -21,27 +33,14 @@ const App = () => {
     // Check if Firebase is already initialized to prevent re-initialization
     if (firebaseApp) return;
 
-    let parsedFirebaseConfig = {};
     try {
       // Access global variables provided by the Canvas environment
+      // __app_id is still used for Firestore paths if you implement them
       const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
       const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-      // Safely parse __firebase_config
-      if (typeof __firebase_config === 'string' && __firebase_config.trim() !== '') {
-        parsedFirebaseConfig = JSON.parse(__firebase_config);
-      } else {
-        // If __firebase_config is not a valid string, log a warning but proceed with an empty config
-        console.warn("Firebase config (__firebase_config) is not a valid string or is empty. Initializing Firebase with an empty config.");
-      }
-
-      // Ensure that parsedFirebaseConfig is an object before proceeding
-      if (typeof parsedFirebaseConfig !== 'object' || parsedFirebaseConfig === null) {
-        throw new Error("Parsed Firebase config is not a valid object.");
-      }
-
-      // Initialize Firebase app
-      const app = initializeApp(parsedFirebaseConfig);
+      // Initialize Firebase app directly with the provided firebaseConfig
+      const app = initializeApp(firebaseConfig);
       setFirebaseApp(app);
 
       // Get Auth and Firestore instances
@@ -97,12 +96,7 @@ const App = () => {
       return () => unsubscribe();
     } catch (err) {
       console.error("Firebase initialization error:", err);
-      // Provide a more specific error message if the config parsing failed
-      if (err.name === 'SyntaxError' || err.message.includes('Firebase config is not a valid object')) {
-        setError("Failed to initialize application: Firebase configuration is invalid. Please check the provided config.");
-      } else {
-        setError("Failed to initialize application. Please try again later.");
-      }
+      setError("Failed to initialize application. Please check your Firebase configuration and try again.");
     }
   }, [firebaseApp, isAuthReady]); // Depend on firebaseApp to ensure one-time init and isAuthReady for initial sign-in logic
 
