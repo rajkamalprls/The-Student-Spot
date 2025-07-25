@@ -1,2 +1,1 @@
-# The-Student-Spot
-The Student Spot Community Website 
+# thestudentspot# thestudentspotdemo
