@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-// We will assume the Dashboard component is imported from another file
-// For example: import Dashboard from './Dashboard'; 
+import React, { useState } from "react";
+import { auth, googleProvider } from "./firebase"; // Make sure this is correctly configured
+import { signInWithPopup } from "firebase/auth";
 
-// --- Icon Helper Component ---
-// A small utility to render SVG icons easily, used by the Dashboard.
+// --- Icon Helper ---
 const Icon = ({ path, className = "w-6 h-6" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
     <path strokeLinecap="round" strokeLinejoin="round" d={path} />
@@ -11,48 +10,37 @@ const Icon = ({ path, className = "w-6 h-6" }) => (
 );
 
 // --- Main App Component ---
-// This component acts as a router, controlling which page is displayed.
 const App = () => {
-  // State to manage the current view ('login', 'signup', 'dashboard') and the user data.
-  const [currentView, setCurrentView] = useState({ view: 'login', user: null });
+  const [currentView, setCurrentView] = useState<"login" | "signup" | "dashboard">("login");
+  const [user, setUser] = useState<{ email: string } | null>(null);
 
-  // Function to navigate between views. It can also pass user data.
-  const navigate = (view, userData = null) => {
-    setCurrentView({ view: view, user: userData });
+  const navigate = (view: "login" | "signup" | "dashboard", userData: any = null) => {
+    setCurrentView(view);
+    if (userData) setUser(userData);
   };
 
-  // Render the appropriate component based on the current view state.
-  switch (currentView.view) {
-    case 'signup':
+  switch (currentView) {
+    case "signup":
       return <Signup navigate={navigate} />;
-    case 'dashboard':
-      // The Dashboard component is rendered here when the view state is 'dashboard'
-      return <Dashboard user={currentView.user} navigate={navigate} />;
-    case 'login':
+    case "dashboard":
+      return <Dashboard user={user} navigate={navigate} />;
     default:
       return <Login navigate={navigate} />;
   }
 };
 
 // --- Login Component ---
-const Login = ({ navigate }) => {
+const Login = ({ navigate }: { navigate: Function }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Handles the simulated Google Sign-In process.
   const handleGoogleSignIn = async () => {
     setError("");
     setLoading(true);
     try {
-      // In a real app, you would use Firebase here:
-      // const result = await signInWithPopup(auth, googleProvider);
-      // const user = result.user;
-      
-      console.log("Simulating successful sign-in with Google.");
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network delay
-
-      // On successful sign-in, navigate to the dashboard with mock user data.
-      navigate("dashboard", { email: "student.name@example.com" });
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      navigate("dashboard", { email: user.email });
     } catch (err) {
       setError("Login failed. Please try again.");
       console.error("Google Sign-In Error:", err);
@@ -65,7 +53,7 @@ const Login = ({ navigate }) => {
     <div className="min-h-screen flex items-center justify-center bg-sky-100 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 text-center">
         <h1 className="text-4xl font-bold mb-3 text-gray-800">
-          Welcome Back to <br /> <span className="text-orange-500">The Student Spot</span>
+          Welcome to <br /> <span className="text-orange-500">The Student Spot</span>
         </h1>
         <p className="text-sm text-gray-600 mb-6">
           Sign in to access your account and resources.
@@ -76,18 +64,16 @@ const Login = ({ navigate }) => {
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-gray-300 rounded-md hover:bg-gray-100 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-gray-300 rounded-md hover:bg-gray-100 transition duration-200 disabled:opacity-50"
         >
-          {/* Google 'G' logo SVG */}
+          {/* Google Logo */}
           <svg className="w-5 h-5" viewBox="0 0 48 48">
-             <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039L38.802 9.92C34.553 6.186 29.658 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path>
-             <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.841-5.841C34.553 6.186 29.658 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path>
-             <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path>
-             <path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-.792 2.237-2.231 4.16-4.082 5.571l6.19 5.238C44.438 36.372 48 30.656 48 24c0-1.341-.138-2.65-.389-3.917z"></path>
+            <path fill="#FFC107" d="M43.6 20H24v8h11c-2.2 5-7.3 8-11 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.2 0 6.1 1.2 8.3 3.2l6-6C33.3 5 28.9 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c11.6 0 21-9.4 21-21 0-1.3-.1-2.7-.4-4z" />
+            <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 18.9 12 24 12c3.1 0 5.8 1.2 8 3l6-6C33.3 5 28.9 3 24 3 16.3 3 9.7 7.3 6.3 14.7z" />
+            <path fill="#4CAF50" d="M24 45c5.2 0 9.9-1.9 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 40.6 16.2 45 24 45z" />
+            <path fill="#1976D2" d="M43.6 20H24v8h11c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C44.4 36.4 48 30.7 48 24c0-1.3-.1-2.7-.4-4z" />
           </svg>
-          <span className="font-medium text-gray-800">
-            {loading ? "Signing In..." : "Continue with Google"}
-          </span>
+          <span>{loading ? "Signing in..." : "Continue with Google"}</span>
         </button>
 
         <p className="mt-4 text-sm text-gray-500">
@@ -102,22 +88,19 @@ const Login = ({ navigate }) => {
 };
 
 // --- Signup Component ---
-const Signup = ({ navigate }) => {
+const Signup = ({ navigate }: { navigate: Function }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Handles the simulated Google Sign-Up process.
   const handleGoogleSignUp = async () => {
     setError("");
     setLoading(true);
     try {
-      console.log("Simulating successful sign-up with Google.");
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // On successful sign-up, navigate to the dashboard with mock user data.
-      navigate("dashboard", { email: "new.user@example.com" });
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      navigate("dashboard", { email: user.email });
     } catch (err) {
-      setError("Sign-up failed. Please try again.");
+      setError("Signup failed. Please try again.");
       console.error("Google Sign-Up Error:", err);
     } finally {
       setLoading(false);
@@ -125,13 +108,13 @@ const Signup = ({ navigate }) => {
   };
 
   return (
-     <div className="min-h-screen flex items-center justify-center bg-sky-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-sky-100 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 text-center">
         <h1 className="text-4xl font-bold mb-3 text-gray-800">
-          Create an Account at <br /> <span className="text-orange-500">The Student Spot</span>
+          Create an Account <br /> <span className="text-orange-500">The Student Spot</span>
         </h1>
         <p className="text-sm text-gray-600 mb-6">
-          Get started by creating an account with Google.
+          Get started by signing up with Google.
         </p>
 
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -139,17 +122,16 @@ const Signup = ({ navigate }) => {
         <button
           onClick={handleGoogleSignUp}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-gray-300 rounded-md hover:bg-gray-100 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-2 py-3 px-6 border border-gray-300 rounded-md hover:bg-gray-100 transition duration-200 disabled:opacity-50"
         >
           <svg className="w-5 h-5" viewBox="0 0 48 48">
-             <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039L38.802 9.92C34.553 6.186 29.658 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"></path>
-             <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.841-5.841C34.553 6.186 29.658 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"></path>
-             <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"></path>
-             <path fill="#1976D2" d="M43.611 20.083H24v8h11.303c-.792 2.237-2.231 4.16-4.082 5.571l6.19 5.238C44.438 36.372 48 30.656 48 24c0-1.341-.138-2.65-.389-3.917z"></path>
+            {/* Same Google logo */}
+            <path fill="#FFC107" d="..." />
+            <path fill="#FF3D00" d="..." />
+            <path fill="#4CAF50" d="..." />
+            <path fill="#1976D2" d="..." />
           </svg>
-          <span className="font-medium text-gray-800">
-            {loading ? "Creating Account..." : "Continue with Google"}
-          </span>
+          <span>{loading ? "Creating Account..." : "Continue with Google"}</span>
         </button>
 
         <p className="mt-4 text-sm text-gray-500">
@@ -163,32 +145,21 @@ const Signup = ({ navigate }) => {
   );
 };
 
-
-// --- Dashboard Component (Placeholder) ---
-// This is a placeholder to show where the real Dashboard component would be rendered.
-// The actual component is now in a separate file.
-const Dashboard = ({ user, navigate }) => {
-    // The actual implementation is in the `dashboard-component` artifact.
-    // This is just to make this file runnable on its own.
-    const getUsername = (email) => {
-        if (!email) return "User";
-        const namePart = email.split('@')[0];
-        return namePart.replace(/[._-]/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
-    };
-    
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
-            <h1 className="text-4xl font-bold text-gray-800">Welcome, {getUsername(user?.email)}</h1>
-            <p className="text-lg text-gray-600 mt-2">Dashboard content would be here.</p>
-            <button
-                onClick={() => navigate('login')}
-                className="mt-6 px-6 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-600 transition duration-300"
-            >
-              Logout
-            </button>
-        </div>
-    );
+// --- Dashboard Component ---
+const Dashboard = ({ user, navigate }: { user: any, navigate: Function }) => {
+  const username = user?.email?.split("@")[0].replace(/[._-]/g, " ") ?? "User";
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+      <h1 className="text-4xl font-bold text-gray-800">Welcome, {username}</h1>
+      <p className="text-lg text-gray-600 mt-2">You are now signed in!</p>
+      <button
+        onClick={() => navigate("login")}
+        className="mt-6 px-6 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600"
+      >
+        Logout
+      </button>
+    </div>
+  );
 };
-
 
 export default App;
