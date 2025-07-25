@@ -1,66 +1,58 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
-// Main App Component - Handles routing between Login and Signup
+// --- Icon Helper Component ---
+// A small utility to render SVG icons easily.
+const Icon = ({ path, className = "w-6 h-6" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+    <path strokeLinecap="round" strokeLinejoin="round" d={path} />
+  </svg>
+);
+
+// --- Main App Component ---
+// This component acts as a router, controlling which page is displayed.
 const App = () => {
-  // State to manage the current view ('login' or 'signup')
-  const [currentView, setCurrentView] = useState('login');
+  // State to manage the current view ('login', 'signup', 'dashboard') and the user data.
+  const [currentView, setCurrentView] = useState({ view: 'login', user: null });
 
-  // Function to switch between views
-  const navigate = (view) => {
-    setCurrentView(view);
+  // Function to navigate between views. It can also pass user data.
+  const navigate = (view, userData = null) => {
+    setCurrentView({ view: view, user: userData });
   };
 
-  // Conditionally render the component based on the current view
-  switch (currentView) {
+  // Render the appropriate component based on the current view state.
+  switch (currentView.view) {
     case 'signup':
       return <Signup navigate={navigate} />;
-    case 'home':
-       // A simple placeholder for the home page after login/signup
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-800">Welcome to The Student Spot!</h1>
-            <p className="text-lg text-gray-600 mt-2">You have successfully signed in.</p>
-            <button
-              onClick={() => navigate('login')}
-              className="mt-6 px-6 py-2 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-600 transition duration-300"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      );
+    case 'dashboard':
+      return <Dashboard user={currentView.user} navigate={navigate} />;
     case 'login':
     default:
       return <Login navigate={navigate} />;
   }
 };
 
-// Login Component
+// --- Login Component ---
+// This is the initial page the user sees.
 const Login = ({ navigate }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // This function handles the Google Sign-In process.
+  // Handles the simulated Google Sign-In process.
   const handleGoogleSignIn = async () => {
     setError("");
     setLoading(true);
     try {
-      // Here you would typically use:
-      // await signInWithPopup(auth, googleProvider);
-      
-      // For demonstration, we'll simulate a successful sign-in
+      // In a real app, you would integrate Firebase authentication here.
       console.log("Simulating successful sign-in with Google.");
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network request
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate a network request
 
-      // On successful sign-in, navigate to a protected route or home page.
-      navigate("home");
+      // After successful login, navigate to the dashboard.
+      // We pass mock user data to the dashboard component.
+      navigate("dashboard", { email: "student.name@example.com" });
     } catch (err) {
-      // This will catch any errors during the sign-in process.
       setError("Login failed. Please try again.");
       console.error("Google Sign-In Error:", err);
     } finally {
-      // This will run regardless of success or failure.
       setLoading(false);
     }
   };
@@ -75,7 +67,6 @@ const Login = ({ navigate }) => {
           Sign in to access your account and resources.
         </p>
 
-        {/* This will display an error message if the login fails. */}
         {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
         <button
@@ -95,18 +86,9 @@ const Login = ({ navigate }) => {
           </span>
         </button>
 
-        <p className="text-xs text-gray-400 mt-6">
-          By continuing, you agree to The Student Spot's{" "}
-          <span className="underline cursor-pointer text-gray-500">Terms of Service</span> and{" "}
-          <span className="underline cursor-pointer text-gray-500">Privacy Policy</span>.
-        </p>
-
         <p className="mt-4 text-sm text-gray-500">
           Don't have an account?{" "}
-          <span
-            onClick={() => navigate("signup")} // Navigate to the signup view
-            className="text-sky-500 cursor-pointer hover:underline"
-          >
+          <span onClick={() => navigate("signup")} className="text-sky-500 cursor-pointer hover:underline">
             Sign Up
           </span>
         </p>
@@ -115,25 +97,21 @@ const Login = ({ navigate }) => {
   );
 };
 
-// Signup Component
+// --- Signup Component ---
+// A separate page for creating a new account.
 const Signup = ({ navigate }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // This function handles the Google Sign-Up process.
   const handleGoogleSignUp = async () => {
     setError("");
     setLoading(true);
     try {
-      // Using signInWithPopup will create a new user if they don't exist.
-      // await signInWithPopup(auth, googleProvider);
-      
-      // For demonstration, simulate a successful sign-up
       console.log("Simulating successful sign-up with Google.");
       await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // On successful signup, navigate to the home page.
-      navigate("home");
+      
+      // After successful sign-up, navigate to the dashboard.
+      navigate("dashboard", { email: "new.user@example.com" });
     } catch (err) {
       setError("Sign-up failed. Please try again.");
       console.error("Google Sign-Up Error:", err);
@@ -143,7 +121,7 @@ const Signup = ({ navigate }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-sky-100 px-4">
+     <div className="min-h-screen flex items-center justify-center bg-sky-100 px-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl p-8 text-center">
         <h1 className="text-4xl font-bold mb-3 text-gray-800">
           Create an Account at <br /> <span className="text-orange-500">The Student Spot</span>
@@ -170,24 +148,99 @@ const Signup = ({ navigate }) => {
           </span>
         </button>
 
-        <p className="text-xs text-gray-400 mt-6">
-          By signing up, you agree to The Student Spot's{" "}
-          <span className="underline cursor-pointer text-gray-500">Terms of Service</span> and{" "}
-          <span className="underline cursor-pointer text-gray-500">Privacy Policy</span>.
-        </p>
-
         <p className="mt-4 text-sm text-gray-500">
           Already have an account?{" "}
-          <span
-            onClick={() => navigate("login")} // Navigate to the login view
-            className="text-sky-500 cursor-pointer hover:underline"
-          >
+          <span onClick={() => navigate("login")} className="text-sky-500 cursor-pointer hover:underline">
             Log In
           </span>
         </p>
       </div>
     </div>
   );
+};
+
+// --- Dashboard Component ---
+// The page displayed after a successful login or sign-up.
+const Dashboard = ({ user, navigate }) => {
+    const [activeTab, setActiveTab] = useState('dashboard');
+
+    // Extracts a user-friendly name from the email address.
+    const getUsername = (email) => {
+        if (!email) return "User";
+        const namePart = email.split('@')[0];
+        return namePart.replace(/[._-]/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
+    };
+
+    const username = getUsername(user?.email);
+
+    // Renders the content for the currently active tab.
+    const renderTabContent = () => {
+        switch (activeTab) {
+            case 'courses':
+                return <div className="p-6 bg-white rounded-lg shadow-inner"><h2 className="text-2xl font-semibold text-gray-700">My Courses</h2><p className="mt-2 text-gray-600">Your enrolled courses will appear here.</p></div>;
+            case 'grades':
+                return <div className="p-6 bg-white rounded-lg shadow-inner"><h2 className="text-2xl font-semibold text-gray-700">My Grades</h2><p className="mt-2 text-gray-600">Your grades will be shown here.</p></div>;
+            case 'profile':
+                return <div className="p-6 bg-white rounded-lg shadow-inner"><h2 className="text-2xl font-semibold text-gray-700">My Profile</h2><p className="mt-2 text-gray-600">Email: {user?.email}</p></div>;
+            case 'dashboard':
+            default:
+                return <div className="p-6 bg-white rounded-lg shadow-inner"><h2 className="text-2xl font-semibold text-gray-700">Dashboard Overview</h2><p className="mt-2 text-gray-600">Welcome to your dashboard!</p></div>;
+        }
+    };
+
+    // A reusable button component for the tabs.
+    const TabButton = ({ id, label, iconPath }) => (
+        <button
+            onClick={() => setActiveTab(id)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === id 
+                ? 'bg-orange-500 text-white shadow-md' 
+                : 'text-gray-600 hover:bg-orange-100 hover:text-orange-600'
+            }`}
+        >
+            <Icon path={iconPath} className="w-5 h-5" />
+            <span className="text-left">{label}</span>
+        </button>
+    );
+
+    return (
+        <div className="min-h-screen bg-gray-100">
+            <header className="bg-white shadow-sm sticky top-0 z-10">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center py-3">
+                        <span className="text-xl font-bold text-orange-500">The Student Spot</span>
+                        <div className="flex items-center gap-4">
+                            <span className="hidden sm:block text-gray-700">Welcome, <span className="font-semibold">{username}</span></span>
+                            <button
+                                onClick={() => navigate('login')}
+                                className="flex items-center gap-2 px-3 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-md hover:bg-red-600 transition duration-300 text-sm"
+                            >
+                                <Icon path="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" className="w-5 h-5" />
+                                <span className="hidden sm:inline">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <aside className="lg:col-span-1">
+                        <div className="bg-white p-3 rounded-lg shadow-lg flex flex-row lg:flex-col gap-2">
+                           <TabButton id="dashboard" label="Dashboard" iconPath="M3.75 3v11.25A2.25 2.25 0 006 16.5h12A2.25 2.25 0 0020.25 14.25V3.75A2.25 2.25 0 0018 1.5H6A2.25 2.25 0 003.75 3zM3.75 14.25V18a2.25 2.25 0 002.25 2.25h12A2.25 2.25 0 0020.25 18v-3.75m-16.5 0h16.5" />
+                           <TabButton id="courses" label="Courses" iconPath="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                           <TabButton id="grades" label="Grades" iconPath="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0l-2.072-1.037m19.624 0l2.072-1.037M12 18.172l-6.84-3.419m13.68 0l-6.84 3.42" />
+                           <TabButton id="profile" label="Profile" iconPath="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </div>
+                    </aside>
+
+                    <div className="lg:col-span-3">
+                        {renderTabContent()}
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
 };
 
 export default App;
