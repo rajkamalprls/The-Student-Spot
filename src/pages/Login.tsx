@@ -5,15 +5,15 @@ import { getFirestore } from 'firebase/firestore'; // Import getFirestore if you
 import { getAnalytics } from "firebase/analytics"; // Import getAnalytics
 
 // Your web app's Firebase configuration
-// This configuration will now be directly used for Firebase initialization
+// This configuration has been updated with the new details you provided.
 const firebaseConfig = {
-  apiKey: "AIzaSyB5iBmmG6QFoetCJ9dClEKIlNCcxcjyezU",
-  authDomain: "rajkamalprls-343ca.firebaseapp.com",
-  projectId: "rajkamalprls-343ca",
-  storageBucket: "rajkamalprls-343ca.firebasestorage.app",
-  messagingSenderId: "1037771254894",
-  appId: "1:1037771254894:web:eaf0062abaae8235cd4a7f",
-  measurementId: "G-VR68H3K99G"
+  apiKey: "AIzaSyDiZXR2hqONfziBJMx2gj37h2UpcRVgrVo",
+  authDomain: "rajkamal-ed54f.firebaseapp.com",
+  projectId: "rajkamal-ed54f",
+  storageBucket: "rajkamal-ed54f.appspot.com",
+  messagingSenderId: "378857373552",
+  appId: "1:378857373552:web:579e3ae2c3a1aec31199b5",
+  measurementId: "G-WSE5JL5WZ6"
 };
 
 // Main App component that encapsulates the entire application
