@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'; // Import getFirestore if you plan to use Firestore later
+import { getAnalytics } from "firebase/analytics"; // Import getAnalytics
 
 // Your web app's Firebase configuration
 // This configuration will now be directly used for Firebase initialization
@@ -42,6 +43,12 @@ const App = () => {
       // Initialize Firebase app directly with the provided firebaseConfig
       const app = initializeApp(firebaseConfig);
       setFirebaseApp(app);
+
+      // Initialize Firebase Analytics
+      // Note: For Analytics to fully function, you need to ensure
+      // Google Analytics is properly set up in your Firebase project
+      // and that the measurementId in firebaseConfig is correct.
+      getAnalytics(app); // Initialize Analytics
 
       // Get Auth and Firestore instances
       const authInstance = getAuth(app);
