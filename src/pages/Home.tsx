@@ -1,20 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import {
-  ChevronRight,
-  Users,
-  BookOpen,
-  Calendar,
-  Briefcase,
-  CheckCircle,
-  GraduationCap,
-  FileEdit,
-  Book,
-  UserPlus,
-  MessageCircle,
-  Login
-} from 'lucide-react';
+import { ChevronRight, Users, BookOpen, Calendar, Briefcase, CheckCircle, GraduationCap, FileEdit, Book, UserPlus, MessageCircle, LogIn as Login } from 'lucide-react';
 
 const Home: React.FC = () => {
   const fadeIn = {
