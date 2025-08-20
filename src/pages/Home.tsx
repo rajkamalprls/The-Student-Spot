@@ -95,7 +95,7 @@ const Home: React.FC = () => {
                 Learn More
               </Link>
               <Link
-                to="/Login"
+                to="/login"
                 className="btn bg-transparent border border-white text-white hover:bg-white hover:text-orange-600"
               >
                 Join Now

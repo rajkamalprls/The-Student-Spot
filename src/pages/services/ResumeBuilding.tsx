@@ -238,7 +238,7 @@ const ResumeBuilding: React.FC = () => {
           Get started with our professional resume building service and increase your chances of landing your dream job.
         </p>
         <a
-          href="/contact"
+          href="/login"
           className="btn bg-white text-orange-600 hover:bg-gray-100 inline-flex items-center"
         >
           Get Started Now

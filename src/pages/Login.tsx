@@ -1,26 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { 
-    getAuth, 
-    GoogleAuthProvider, 
-    signInWithPopup, 
-    onAuthStateChanged, 
-    signOut,
-    signInWithCustomToken,
-    signInAnonymously
-} from 'firebase/auth';
-
-// --- Firebase Configuration ---
-// IMPORTANT: In a real application, you would get this from your Firebase project settings.
-// For this example, we'll use the global variable provided by the environment.
-const firebaseConfig = typeof __firebase_config !== 'undefined' 
-    ? JSON.parse(__firebase_config) 
-    : { apiKey: "your-api-key", authDomain: "your-auth-domain", projectId: "your-project-id" };
-
-// --- Initialize Firebase and Authentication ---
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import { Navigate } from 'react-router-dom';
 
 // --- SVG Icon for Google ---
 const GoogleIcon = () => (
@@ -32,133 +13,78 @@ const GoogleIcon = () => (
     </svg>
 );
 
-// --- Login Component ---
-// This component is shown when the user is not logged in.
-const LoginScreen = ({ handleGoogleSignIn, loading, error }) => (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-3 text-gray-800">
-            Welcome Back
-        </h1>
-        <p className="text-gray-600 mb-8">
-            Sign in with Google to continue to your dashboard.
-        </p>
+const Login: React.FC = () => {
+  const { user, signInWithGoogle, loading } = useAuth();
+  const [error, setError] = useState('');
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
-        {error && <p className="bg-red-100 text-red-700 text-sm rounded-md p-3 mb-4">{error}</p>}
+  // Redirect if already logged in
+  if (user && !loading) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
-        <button
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-transform duration-200 ease-in-out transform hover:scale-105 disabled:bg-blue-300 disabled:cursor-not-allowed"
-        >
-            <GoogleIcon />
-            <span>{loading ? "Signing in..." : "Continue with Google"}</span>
-        </button>
+  const handleGoogleSignIn = async () => {
+    try {
+      setError('');
+      setIsSigningIn(true);
+      await signInWithGoogle();
+    } catch (err: any) {
+      setError(err.message || 'Failed to sign in with Google');
+      setIsSigningIn(false);
+    }
+  };
 
-        <p className="text-xs text-gray-400 mt-8">
-            By continuing, you agree to our Terms of Service and Privacy Policy.
-        </p>
-    </div>
-);
-
-// --- Home Component ---
-// This component is shown when the user is logged in.
-const HomeScreen = ({ user, handleSignOut }) => (
-    <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center">
-        <img 
-            src={user.photoURL || `https://placehold.co/100x100/EBF8FF/3182CE?text=${user.displayName.charAt(0)}`} 
-            alt="Profile" 
-            className="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-blue-200"
-            onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/100x100/EBF8FF/3182CE?text=${user.displayName.charAt(0)}`; }}
-        />
-        <h1 className="text-2xl font-bold text-gray-800">
-            Welcome, {user.displayName}!
-        </h1>
-        <p className="text-gray-600 mb-6">{user.email}</p>
-        
-        <button
-            onClick={handleSignOut}
-            className="w-full py-2 px-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors duration-200"
-        >
-            Sign Out
-        </button>
-    </div>
-);
-
-
-// --- Main App Component ---
-export default function App() {
-    const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true); // Start with loading true to wait for auth state
-    const [error, setError] = useState("");
-
-    // Effect to listen for authentication state changes
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-            } else {
-                // If no user, try to sign in with custom token or anonymously
-                try {
-                    const token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-                    if (token) {
-                        await signInWithCustomToken(auth, token);
-                        // onAuthStateChanged will run again with the new user
-                    } else {
-                        // If no token, sign in anonymously or leave as null
-                        // For this example, we'll just set the user to null
-                        setUser(null);
-                    }
-                } catch (err) {
-                     console.error("Anonymous/Custom Sign-In Error:", err);
-                     setUser(null);
-                }
-            }
-            setLoading(false);
-        });
-
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
-    }, []);
-
-    // Function to handle Google Sign-In
-    const handleGoogleSignIn = async () => {
-        setError("");
-        setLoading(true);
-        try {
-            await signInWithPopup(auth, googleProvider);
-            // onAuthStateChanged will handle setting the user state
-        } catch (err) {
-            setError("Login failed. Please try again.");
-            console.error("Google Sign-In Error:", err.message);
-            setLoading(false); // Stop loading on error
-        }
-    };
-
-    // Function to handle Sign-Out
-    const handleSignOut = async () => {
-        try {
-            await signOut(auth);
-            setUser(null); // Clear user state immediately
-        } catch (err) {
-            console.error("Sign Out Error:", err);
-            setError("Failed to sign out.");
-        }
-    };
-
+  if (loading) {
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 font-sans p-4">
-            {loading ? (
-                // Simple loading spinner
-                <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin"></div>
-            ) : user ? (
-                <HomeScreen user={user} handleSignOut={handleSignOut} />
-            ) : (
-                <LoginScreen 
-                    handleGoogleSignIn={handleGoogleSignIn} 
-                    loading={loading} 
-                    error={error} 
-                />
-            )}
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-16 h-16 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
+      </div>
     );
-}
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 p-4">
+      <motion.div 
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-center"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="mb-8">
+          <img
+            src="/favicon.png"
+            alt="The Student Spot"
+            className="h-16 w-16 mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome to The Student Spot
+          </h1>
+          <p className="text-gray-600">
+            Sign in with Google to access your student dashboard
+          </p>
+        </div>
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
+        <button
+          onClick={handleGoogleSignIn}
+          disabled={isSigningIn}
+          className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-lg transition-all duration-200 ease-in-out transform hover:scale-105 disabled:bg-orange-300 disabled:cursor-not-allowed disabled:transform-none"
+        >
+          <GoogleIcon />
+          <span>{isSigningIn ? "Signing in..." : "Continue with Google"}</span>
+        </button>
+
+        <p className="text-xs text-gray-500 mt-6">
+          By continuing, you agree to our Terms of Service and Privacy Policy.
+        </p>
+      </motion.div>
+    </div>
+  );
+};
+
+export default Login;

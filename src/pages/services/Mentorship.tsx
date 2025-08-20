@@ -205,7 +205,7 @@ const Mentorship: React.FC = () => {
           Take the first step towards accelerating your career growth with personalized mentorship.
         </p>
         <a
-          href="/contact"
+          href="/login"
           className="btn bg-white text-orange-600 hover:bg-gray-100 inline-flex items-center"
         >
           Apply for Mentorship

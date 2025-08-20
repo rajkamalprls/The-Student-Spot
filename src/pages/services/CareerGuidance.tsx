@@ -149,7 +149,7 @@ const CareerGuidance: React.FC = () => {
           Schedule a free consultation with our career counselors and take the first step towards your dream career.
         </p>
         <a
-          href="/contact"
+          href="/login"
           className="btn bg-white text-orange-600 hover:bg-gray-100 inline-flex items-center"
         >
           Schedule Consultation
